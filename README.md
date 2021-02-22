@@ -2,6 +2,8 @@
 
 Demo for the conference talk.
 
+<img width="1130" alt="Complete infrastructure" src="https://user-images.githubusercontent.com/2823336/108758439-feea6e80-7542-11eb-995a-70f88bfbacbb.png">
+
 ## Pre-requirement
 
 - `yarn install` (note: this project uses [yarn workspaces](https://classic.yarnpkg.com/en/docs/workspaces/))
