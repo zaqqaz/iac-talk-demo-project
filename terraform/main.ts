@@ -12,19 +12,19 @@ import {
     CloudfrontOriginAccessIdentity,
     S3BucketPolicy,
 } from "./.gen/providers/aws";
+import { configuration } from "./configuration";
 
 class MyStack extends TerraformStack {
     constructor(scope: Construct, name: string) {
         super(scope, name);
 
+        const { backendBucket, backendKey, domainHost, domainName } = configuration;
+
         new S3Backend(this, {
-            bucket: 'terraform-backend.ux.by',
-            key: 'iac-talk-demo-project',
+            bucket: backendBucket,
+            key: backendKey,
             region: 'us-east-1',
         })
-
-        const domainHost = `ux.by`
-        const domainName = `iac-talk-demo-project.${domainHost}`
 
         const provider = new AwsProvider(this, 'default', {
             region: 'us-east-1',
