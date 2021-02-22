@@ -1,5 +1,5 @@
 import { Construct } from 'constructs';
-import { App, TerraformStack } from 'cdktf';
+import { App, S3Backend, TerraformStack } from 'cdktf';
 import {
     AwsProvider,
     S3Bucket,
@@ -16,6 +16,12 @@ import {
 class MyStack extends TerraformStack {
     constructor(scope: Construct, name: string) {
         super(scope, name);
+
+        new S3Backend(this, {
+            bucket: 'terraform-backend.ux.by',
+            key: 'iac-talk-demo-project',
+            region: 'us-east-1',
+        })
 
         const domainHost = `ux.by`
         const domainName = `iac-talk-demo-project.${domainHost}`
