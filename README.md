@@ -2,6 +2,10 @@
 
 Demo for the conference talk.
 
+## Pre-requirement
+
+- `yarn install` (note: this project uses [yarn workspaces](https://classic.yarnpkg.com/en/docs/workspaces/))
+
 ## Infrastructure managed by Terraform
 From the `terraform` directory (`cd terraform`) you can run:
 
