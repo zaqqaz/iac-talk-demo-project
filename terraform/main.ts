@@ -7,7 +7,10 @@ import {
     Route53Record,
     CloudfrontDistribution,
     AcmCertificate,
-    AcmCertificateValidation
+    AcmCertificateValidation,
+    DataAwsIamPolicyDocument,
+    CloudfrontOriginAccessIdentity,
+    S3BucketPolicy,
 } from "./.gen/providers/aws";
 
 class MyStack extends TerraformStack {
@@ -24,12 +27,44 @@ class MyStack extends TerraformStack {
         const bucket = new S3Bucket(this, 'resource', {
             provider,
             bucket: domainName,
-            acl: "public-read",
-            website: [
+            acl: "private"
+        });
+
+        const originAccessIdentity = new CloudfrontOriginAccessIdentity(this, 'origin_access_identity')
+
+        const policyDocument = new DataAwsIamPolicyDocument(this, 'bucket', {
+            provider,
+            statement: [
                 {
-                    indexDocument: 'index.html'
+                    actions: [`s3:GetObject`],
+                    resources: [
+                        `${bucket.arn}/*`
+                    ],
+                    principals: [{
+                        type: "AWS",
+                        identifiers: [
+                            originAccessIdentity.iamArn
+                        ]
+                    }],
+                },
+                {
+                    actions: [`s3:ListBucket`],
+                    resources: [
+                        bucket.arn!,
+                    ],
+                    principals: [{
+                        type: "AWS",
+                        identifiers: [
+                            originAccessIdentity.iamArn
+                        ]
+                    }],
                 }
             ],
+        });
+
+        new S3BucketPolicy(this, 'policy', {
+            bucket: bucket.id!,
+            policy: policyDocument.json
         });
 
         const acmCertificate = new AcmCertificate(this, 'AcmCertificate', {
@@ -70,6 +105,9 @@ class MyStack extends TerraformStack {
             origin: [{
                 domainName: bucket.bucketRegionalDomainName,
                 originId: domainName,
+                s3OriginConfig: [{
+                    originAccessIdentity: originAccessIdentity.cloudfrontAccessIdentityPath,
+                }]
             }],
             enabled: true,
             defaultRootObject: 'index.html',
