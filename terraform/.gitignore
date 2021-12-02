@@ -1,6 +1,6 @@
-!lambda/index.js
 *.d.ts
 *.js
+!lambda/index.js
 node_modules
 cdktf.out
 terraform.tfstate*
