@@ -1,6 +1,11 @@
 import { AcmCertificate } from "../.gen/providers/aws/index";
 import { ComplexComputedToList } from "./ComplexComputedToList";
 
+// TODO: likely can be removed in next versions of cdk
+// more info:
+// https://github.com/hashicorp/terraform-cdk/issues/424
+// https://github.com/hashicorp/terraform-cdk/issues/430#issuecomment-831511019
+
 class CustomAcmCertificateDomainValidationOptions extends ComplexComputedToList {
     // domain_name - computed: true, optional: false, required: true
     public get domainName() {
