@@ -3,7 +3,7 @@ const path = require('path');
 const remove_suffix = ".ux.by";
 const origin_hostname = "iac-talk-demo-project.ux.by.s3.amazonaws.com";
 
-export const handler = async (event, context, callback) => {
+module.exports.handler = async (event, context, callback) => {
     const request = event.Records[0].cf.request;
     const headers = request.headers;
     const host_header = headers.host[0].value;
