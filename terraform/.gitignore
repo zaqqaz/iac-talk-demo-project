@@ -1,3 +1,4 @@
+!lambda/index.js
 *.d.ts
 *.js
 node_modules
