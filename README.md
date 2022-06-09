@@ -1,5 +1,11 @@
 # Infrastructure As Code for JS applications on AWS with TypeScript
 
+ 
+### [Talk](https://www.youtube.com/watch?v=sbZn5RCITMo)
+<a href="https://www.youtube.com/watch?v=sbZn5RCITMo" target="_blank">
+ <img width="450" src="https://user-images.githubusercontent.com/2823336/172821816-87d8931d-6878-4254-9da1-cb9e4c5cd844.png">
+</a>
+
 Demo for the conference talk.
 
 <img width="1130" alt="Complete infrastructure" src="https://user-images.githubusercontent.com/2823336/108758439-feea6e80-7542-11eb-995a-70f88bfbacbb.png">
