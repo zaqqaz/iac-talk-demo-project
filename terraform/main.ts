@@ -12,13 +12,16 @@ import {
     CloudfrontOriginAccessIdentity,
     S3BucketPolicy,
 } from "./.gen/providers/aws";
+import { LambdaAtEdge } from "./.gen/modules/transcend-io/lambda-at-edge/aws";
 import { configuration } from "./configuration";
+import * as path from "path";
+import { convertDomainValidationOptions } from "./utils/CustomAcmCertificateDomainValidationOptions";
 
 class MyStack extends TerraformStack {
     constructor(scope: Construct, name: string) {
         super(scope, name);
 
-        const { backendBucket, backendKey, domainHost, domainName } = configuration;
+        const { backendBucket, backendKey, domainHost, domainName, lambdaS3Key } = configuration;
 
         new S3Backend(this, {
             bucket: backendBucket,
@@ -92,10 +95,10 @@ class MyStack extends TerraformStack {
 
         const certificateValidationRecord = new Route53Record(this, 'certificateValidation', {
             zoneId: route53Zone.zoneId,
-            name: acmCertificate.domainValidationOptions('0').resourceRecordName,
-            type: acmCertificate.domainValidationOptions('0').resourceRecordType,
+            name: convertDomainValidationOptions(acmCertificate, '0').resourceRecordName,
+            type: convertDomainValidationOptions(acmCertificate, '0').resourceRecordType,
             records: [
-                acmCertificate.domainValidationOptions('0').resourceRecordValue
+                convertDomainValidationOptions(acmCertificate, '0').resourceRecordValue
             ],
             ttl: 60
         });
@@ -104,6 +107,14 @@ class MyStack extends TerraformStack {
             provider,
             certificateArn: acmCertificate.arn,
             validationRecordFqdns: [certificateValidationRecord.fqdn]
+        });
+
+        const { arnOutput: lambdaAtEdgeArn } = new LambdaAtEdge(this, 'lambdaAtEdge', {
+            description: 'Implements SPA hosting',
+            lambdaCodeSourceDir: path.resolve(__dirname, "./lambda"),
+            name: 'spaRedirectS3Edge',
+            s3ArtifactBucket: lambdaS3Key,
+            runtime: "nodejs14.x"
         });
 
         const cloudfrontDistribution = new CloudfrontDistribution(this, 'cloudfront', {
@@ -117,7 +128,9 @@ class MyStack extends TerraformStack {
             }],
             enabled: true,
             defaultRootObject: 'index.html',
-            aliases: [domainName],
+            aliases: [
+                `*.${domainHost}`,
+            ],
             restrictions: [{
                 geoRestriction: [{
                     restrictionType: 'none',
@@ -136,9 +149,19 @@ class MyStack extends TerraformStack {
 
                     forwardedValues: [{
                         queryString: false,
+                        headers: [
+                            "Origin",
+                            "Host"
+                        ],
                         cookies: [{
                             forward: "none"
                         }]
+                    }],
+
+                    lambdaFunctionAssociation: [{
+                        eventType: "origin-request",
+                        includeBody: false,
+                        lambdaArn: lambdaAtEdgeArn
                     }]
                 }
             ],
@@ -146,13 +169,13 @@ class MyStack extends TerraformStack {
             viewerCertificate: [{
                 acmCertificateArn: acmCertificate.arn,
                 sslSupportMethod: "sni-only",
-            }]
+            }],
         });
 
         new Route53Record(this, 'domain', {
             provider,
             zoneId: route53Zone.zoneId,
-            name: domainName,
+            name: `*.${domainHost}`,
             type: 'A',
 
             alias: [
